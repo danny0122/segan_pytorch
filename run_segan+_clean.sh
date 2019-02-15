@@ -16,4 +16,4 @@ SAVE_PATH="synth_segan+"
 
 python -u clean.py --g_pretrained_ckpt $CKPT_PATH/$G_PRETRAINED_CKPT \
 	--test_files $TEST_FILES_PATH --cfg_file $CKPT_PATH/train.opts \
-	--synthesis_path $SAVE_PATH --soundfile
+	--synthesis_path $SAVE_PATH --soundfile --cuda

@@ -36,9 +36,9 @@ def main(opts):
         print(json.dumps(vars(args), indent=2))
     args.cuda = opts.cuda
     if hasattr(args, 'wsegan') and args.wsegan:
-        segan = WSEGAN(args)     
+        segan = WSEGAN(args)
     else:
-        segan = SEGAN(args)     
+        segan = SEGAN(args)
     segan.G.load_pretrained(opts.g_pretrained_ckpt, True)
     if opts.cuda:
         segan.cuda()
@@ -58,11 +58,13 @@ def main(opts):
         wav = normalize_wave_minmax(wav)
         wav = pre_emphasize(wav, args.preemph)
         pwav = torch.FloatTensor(wav).view(1,1,-1)
+        device = "cpu"
         if opts.cuda:
             pwav = pwav.cuda()
-        g_wav, g_c = segan.generate(pwav)
+            device = "cuda:0"
+        g_wav, g_c = segan.generate(pwav, device=device)
         out_path = os.path.join(opts.synthesis_path,
-                                tbname) 
+                                tbname)
         if opts.soundfile:
             sf.write(out_path, g_wav, 16000)
         else:
@@ -76,7 +78,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--g_pretrained_ckpt', type=str, default=None)
     parser.add_argument('--test_files', type=str, nargs='+', default=None)
-    parser.add_argument('--seed', type=int, default=111, 
+    parser.add_argument('--seed', type=int, default=111,
                         help="Random seed (Def: 111).")
     parser.add_argument('--synthesis_path', type=str, default='segan_samples',
                         help='Path to save output samples (Def: ' \
@@ -89,7 +91,7 @@ if __name__ == '__main__':
 
     if not os.path.exists(opts.synthesis_path):
         os.makedirs(opts.synthesis_path)
-    
+
     # seed initialization
     random.seed(opts.seed)
     np.random.seed(opts.seed)
