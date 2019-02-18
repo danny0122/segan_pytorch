@@ -109,7 +109,7 @@ class SEGAN(Model):
             self.D = Discriminator(2, opts.denc_fmaps, dkwidth,
                                    poolings=opts.denc_poolings,
                                    pool_type=opts.dpool_type,
-                                   pool_slen=opts.dpool_slen, 
+                                   pool_slen=opts.dpool_slen,
                                    norm_type=opts.dnorm_type,
                                    phase_shift=opts.phase_shift,
                                    sinc_conv=opts.sinc_conv)
@@ -179,7 +179,7 @@ class SEGAN(Model):
         D_in = torch.cat((x_, ref), dim=1)
         return self.D(D_in)
 
-    def gen_train_samples(self, clean_samples, noisy_samples, z_sample, 
+    def gen_train_samples(self, clean_samples, noisy_samples, z_sample,
                           iteration=None):
         if z_sample is not None:
             canvas_w = self.infer_G(noisy_samples, clean_samples, z=z_sample)
@@ -246,13 +246,13 @@ class SEGAN(Model):
         # attach opts to models so that they are saved altogether in ckpts
         self.G.optim = Gopt
         self.D.optim = Dopt
-        
+
         # Build savers for end of epoch, storing up to 3 epochs each
         eoe_g_saver = Saver(self.G, opts.save_path, max_ckpts=3,
                             optimizer=self.G.optim, prefix='EOE_G-')
         eoe_d_saver = Saver(self.D, opts.save_path, max_ckpts=3,
                             optimizer=self.D.optim, prefix='EOE_D-')
-        num_batches = len(dloader) 
+        num_batches = len(dloader)
         l1_weight = l1_init
         iteration = 1
         timings = []
@@ -303,7 +303,7 @@ class SEGAN(Model):
                 d_real_loss = criterion(d_real.view(-1), lab)
                 d_real_loss.backward()
                 total_d_real_loss += d_real_loss
-                
+
                 # (2) D fake update
                 d_fake, _ = self.infer_D(Genh.detach(), noisy)
                 lab = label.fill_(0)
@@ -312,7 +312,7 @@ class SEGAN(Model):
                 total_d_fake_loss += d_fake_loss
                 Dopt.step()
 
-                d_loss = d_fake_loss + d_real_loss 
+                d_loss = d_fake_loss + d_real_loss
 
                 # (3) G real update
                 Gopt.zero_grad()
@@ -348,7 +348,7 @@ class SEGAN(Model):
                            'btime: {:.4f} s, mbtime: {:.4f} s' \
                            ''.format(g_adv_loss_v,
                                      g_l1_loss_v,
-                                     l1_weight, 
+                                     l1_weight,
                                      timings[-1],
                                      np.mean(timings))
                     print(log)
@@ -398,22 +398,22 @@ class SEGAN(Model):
 
             if va_dloader is not None:
                 if len(noisy_evals) == 0:
-                    evals_, noisy_evals_ = self.evaluate(opts, va_dloader, 
-                                                         log_freq, do_noisy=True)
+                    evals_, noisy_evals_ = self.evaluate(opts, va_dloader,
+                                                         log_freq, do_noisy=True, device = device)
                     for k, v in noisy_evals_.items():
                         if k not in noisy_evals:
                             noisy_evals[k] = []
                         noisy_evals[k] += v
-                        self.writer.add_scalar('noisy-{}'.format(k), 
+                        self.writer.add_scalar('noisy-{}'.format(k),
                                                noisy_evals[k][-1], epoch)
                 else:
-                    evals_ = self.evaluate(opts, va_dloader, 
+                    evals_ = self.evaluate(opts, va_dloader,
                                            log_freq, do_noisy=False)
                 for k, v in evals_.items():
                     if k not in evals:
                         evals[k] = []
                     evals[k] += v
-                    self.writer.add_scalar('Genh-{}'.format(k), 
+                    self.writer.add_scalar('Genh-{}'.format(k),
                                            evals[k][-1], epoch)
                 val_obj = evals['covl'][-1] + evals['pesq'][-1] + \
                         evals['ssnr'][-1]
@@ -523,7 +523,7 @@ class WSEGAN(SEGAN):
         self.pow_weight = opts.pow_weight
         self.vanilla_gan = opts.vanilla_gan
         self.n_fft = opts.n_fft
-        super(WSEGAN, self).__init__(opts, name, 
+        super(WSEGAN, self).__init__(opts, name,
                                      None, None)
         self.G.apply(wsegan_weights_init)
         self.D.apply(wsegan_weights_init)
@@ -556,13 +556,13 @@ class WSEGAN(SEGAN):
         # attach opts to models so that they are saved altogether in ckpts
         self.G.optim = Gopt
         self.D.optim = Dopt
-        
+
         # Build savers for end of epoch, storing up to 3 epochs each
         eoe_g_saver = Saver(self.G, opts.save_path, max_ckpts=3,
                             optimizer=self.G.optim, prefix='EOE_G-')
         eoe_d_saver = Saver(self.D, opts.save_path, max_ckpts=3,
                             optimizer=self.D.optim, prefix='EOE_D-')
-        num_batches = len(dloader) 
+        num_batches = len(dloader)
         l1_weight = l1_init
         iteration = 1
         timings = []
@@ -593,7 +593,7 @@ class WSEGAN(SEGAN):
             fake = Genh.detach()
             d_fake, _ = self.infer_D(fake, noisy)
             fk_lab = torch.zeros(d_fake.size()).cuda()
-            
+
             d_fake_loss = cost(d_fake, fk_lab)
 
             d_weight = 0.5 # count only d_fake and d_real
@@ -642,16 +642,16 @@ class WSEGAN(SEGAN):
 
             # POWER Loss -----------------------------------
             # make stft of gtruth
-            clean_stft = torch.stft(clean.squeeze(1), 
-                                    n_fft=min(clean.size(-1), self.n_fft), 
+            clean_stft = torch.stft(clean.squeeze(1),
+                                    n_fft=min(clean.size(-1), self.n_fft),
                                     hop_length=160,
                                     win_length=320,
                                     normalized=True)
             clean_mod = torch.norm(clean_stft, 2, dim=3)
             clean_mod_pow = 10 * torch.log10(clean_mod ** 2 + 10e-20)
-            Genh_stft = torch.stft(Genh.squeeze(1), 
+            Genh_stft = torch.stft(Genh.squeeze(1),
                                    n_fft=min(Genh.size(-1), self.n_fft),
-                                   hop_length=160, 
+                                   hop_length=160,
                                    win_length=320, normalized=True)
             Genh_mod = torch.norm(Genh_stft, 2, dim=3)
             Genh_mod_pow = 10 * torch.log10(Genh_mod ** 2 + 10e-20)
@@ -728,7 +728,7 @@ class WSEGAN(SEGAN):
                         if skip.skip_type == 'alpha':
                             self.writer.add_histogram('skip_alpha_{}'.format(skip_id),
                                                       skip.skip_k.data,
-                                                      iteration, 
+                                                      iteration,
                                                       bins='sturges')
                 # get D and G weights and plot their norms by layer and global
                 def model_weights_norm(model, total_name):
@@ -799,11 +799,11 @@ class AEWSEGAN(WSEGAN):
 
         # attach opts to models so that they are saved altogether in ckpts
         self.G.optim = Gopt
-        
+
         # Build savers for end of epoch, storing up to 3 epochs each
         eoe_g_saver = Saver(self.G, opts.save_path, max_ckpts=3,
                             optimizer=self.G.optim, prefix='EOE_G-')
-        num_batches = len(dloader) 
+        num_batches = len(dloader)
         l2_weight = l1_init
         iteration = 1
         timings = []
@@ -846,16 +846,16 @@ class AEWSEGAN(WSEGAN):
             if iteration % log_freq == 0:
                 # POWER Loss (not used to backward) -----------------------------------
                 # make stft of gtruth
-                clean_stft = torch.stft(clean.squeeze(1), 
-                                        n_fft=min(clean.size(-1), self.n_fft), 
+                clean_stft = torch.stft(clean.squeeze(1),
+                                        n_fft=min(clean.size(-1), self.n_fft),
                                         hop_length=160,
                                         win_length=320,
                                         normalized=True)
                 clean_mod = torch.norm(clean_stft, 2, dim=3)
                 clean_mod_pow = 10 * torch.log10(clean_mod ** 2 + 10e-20)
-                Genh_stft = torch.stft(Genh.detach().squeeze(1), 
+                Genh_stft = torch.stft(Genh.detach().squeeze(1),
                                        n_fft=min(Genh.size(-1), self.n_fft),
-                                       hop_length=160, 
+                                       hop_length=160,
                                        win_length=320, normalized=True)
                 Genh_mod = torch.norm(Genh_stft, 2, dim=3)
                 Genh_mod_pow = 10 * torch.log10(Genh_mod ** 2 + 10e-20)
@@ -896,7 +896,7 @@ class AEWSEGAN(WSEGAN):
                         if skip.skip_type == 'alpha':
                             self.writer.add_histogram('skip_alpha_{}'.format(skip_id),
                                                       skip.skip_k.data,
-                                                      iteration, 
+                                                      iteration,
                                                       bins='sturges')
                 # get D and G weights and plot their norms by layer and global
                 def model_weights_norm(model, total_name):
@@ -926,7 +926,7 @@ class AEWSEGAN(WSEGAN):
                         self.writer.add_scalar('noisy_SD',
                                                nsd, iteration)
                     else:
-                        sd = self.evaluate(opts, va_dloader, 
+                        sd = self.evaluate(opts, va_dloader,
                                            log_freq, do_noisy=False)
                     self.writer.add_scalar('Genh_SD',
                                            sd, iteration)
