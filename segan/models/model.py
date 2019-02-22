@@ -360,17 +360,17 @@ class SEGAN(Model):
                                            iteration)
                     self.writer.add_scalar('G_l1', g_l1_loss_v,
                                            iteration)
-                    self.writer.add_histogram('D_fake__hist', d_fake_.cpu().data,
+                    self.writer.add_histogram('D_fake__hist', d_fake_.cpu().data.numpy(),
+                                              iteration)
+                    self.writer.add_histogram('D_fake_hist', d_fake.cpu().data.numpy(),
                                               iteration, bins='sturges')
-                    self.writer.add_histogram('D_fake_hist', d_fake.cpu().data,
+                    self.writer.add_histogram('D_real_hist', d_real.cpu().data.numpy(),
                                               iteration, bins='sturges')
-                    self.writer.add_histogram('D_real_hist', d_real.cpu().data,
+                    self.writer.add_histogram('Gz', Genh.cpu().data.numpy(),
                                               iteration, bins='sturges')
-                    self.writer.add_histogram('Gz', Genh.cpu().data,
+                    self.writer.add_histogram('clean', clean.cpu().data.numpy(),
                                               iteration, bins='sturges')
-                    self.writer.add_histogram('clean', clean.cpu().data,
-                                              iteration, bins='sturges')
-                    self.writer.add_histogram('noisy', noisy.cpu().data,
+                    self.writer.add_histogram('noisy', noisy.cpu().data.numpy(),
                                               iteration, bins='sturges')
                     # get D and G weights and plot their norms by layer and
                     # global
@@ -381,11 +381,11 @@ class SEGAN(Model):
                                 W = v.data
                                 W_norm = torch.norm(W)
                                 self.writer.add_scalar('{}_Wnorm'.format(k),
-                                                       W_norm,
+                                                       W_norm.item(),
                                                        iteration)
                                 total_GW_norm += W_norm
                         self.writer.add_scalar('{}_Wnorm'.format(total_name),
-                                               total_GW_norm,
+                                               total_GW_norm.item(),
                                                iteration)
                     model_weights_norm(self.G, 'Gtotal')
                     model_weights_norm(self.D, 'Dtotal')
