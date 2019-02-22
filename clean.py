@@ -61,7 +61,7 @@ def main(opts):
         device = "cpu"
         if opts.cuda:
             pwav = pwav.cuda()
-            device = "cuda:0"
+            device = "cuda"
         g_wav, g_c = segan.generate(pwav, device=device)
         out_path = os.path.join(opts.synthesis_path,
                                 tbname)
